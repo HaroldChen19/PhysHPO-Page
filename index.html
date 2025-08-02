@@ -1,0 +1,787 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>PhysHPO: Hierarchical Fine-grained Preference Optimization for Physically Plausible Video Generation</title>
+<link rel="shortcut icon" type="image/x-icon" href="assets/figs/personal.jpg">
+<link href="./config_files/style.css" rel="stylesheet">
+
+
+<style>
+  p.serif{
+    font-family:"Times New Roman", Times, serif;
+  }
+  p.sansserif{
+    font-family: Arial, Helvetica, sans-serif;
+  }
+</style>
+  
+</head>
+
+<body>
+<div class="content">
+  <!-- <img src="assets/figs/logo.jpg" alt="OmniCreator Logo" style="display: block; margin: 0 auto; max-width: 15%; height: auto;"> -->
+  <h1>
+    <!-- <strong>
+      <span class="gradient-text"><i>OmniCreator</i></span>
+    </strong> -->
+    <!-- <br> -->
+    <strong>
+      <span class="gradient-black">Hierarchical Fine-grained Preference Optimization for Physically Plausible Video Generation</span>
+    </strong>
+  </h1>
+  <p id="authors" class="serif">
+    <span style="font-size: 0.8em">
+      <a href="https://haroldchen19.github.io/">Harold Haodong Chen<sup>1</sup></a>
+      <a href="https://scholar.google.com/citations?user=ab5uUAcAAAAJ&hl=en">Haojian Huang<sup>2</sup></a></span>
+      <br>
+    <span style="font-size: 0.8em">
+      <a href="https://cqf.io/">Qifeng Chen<sup>1</sup></a>
+      <a href="https://leehomyc.github.io/">Harry Yang<sup>1</sup><sup>†</sup></a>
+      <a href="https://sites.google.com/site/sernam">Ser-Nam Lim<sup>3</sup><sup>†</sup></a>
+    </span>
+    <br>
+    <span style="font-size: 0.8em; margin-top: 0.5em; color: black;">
+      <a><sup>1</sup>HKUST</a>
+      <a><sup>2</sup>HKU</a>
+      <a><sup>3</sup>UCF</a>
+      <a><sup>†</sup>Corresponding Author</a>
+    </span>
+    <br>
+    <span style="font-size: 0.7em; margin-top: 0.5em; color: black;">
+      <a style="color: black;"> Primary Contact: haroldchen328@gmail.com</a>
+    </span>
+  </p>
+
+  <font size="+1">
+    <p style="text-align: center;" class="sansserif">
+      <a href="https://arxiv.org/abs/2412.02114" target="" style="font-weight: bold;">[Paper]</a>&nbsp;&nbsp;&nbsp;&nbsp;
+      <!-- <a href="https://huggingface.co/datasets/Harold328/OmniBench-99" target="" style="font-weight: bold;">[OmniBench-99]</a>&nbsp;&nbsp;&nbsp;&nbsp; -->
+    </p><br>
+  </font>
+
+</div>
+
+
+<div class="content">
+  <p style="text-align:center; font-size: 2em; font-weight: bold" class="sansserif">Abstract</p>
+  <p style="font-size: 1.2em; margin-left:5em; margin-right:5em;" class="serif">
+    Recent advancements in video generation have enabled the creation of high-quality, visually compelling videos. However, generating videos that adhere to the laws of physics remains a critical challenge for applications requiring realism and accuracy. 
+    In this work, we propose <b>PhysHPO</b>, a novel framework for Hierarchical Cross-Modal Direct Preference Optimization, to tackle this challenge by enabling fine-grained preference alignment for physically plausible video generation. PhysHPO optimizes video alignment across four hierarchical granularities: a) <b><i>Instance Level</i></b>, aligning the overall video content with the input prompt; b) <b><i>State Level</i></b>, ensuring temporal consistency using boundary frames as anchors; c) <b><i>Motion Level</i></b>, modeling motion trajectories for realistic dynamics; and d) <b><i>Semantic Level</i></b>, maintaining logical consistency between narrative and visuals.
+    Recognizing that real-world videos are the best reflections of physical phenomena, we further introduce an automated data selection pipeline to efficiently identify and utilize <i>"good data"</i> from existing large-scale text-video datasets, thereby eliminating the need for costly and time-intensive dataset construction.
+    Extensive experiments on both physics-focused and general capability benchmarks demonstrate that PhysHPO significantly improves physical plausibility and overall video generation quality of advanced models. To the best of our knowledge, this is the first work to explore fine-grained preference alignment and data selection for video generation, paving the way for more realistic and human-preferred video generation paradigms.  </p>
+</div>
+
+
+<div class="content">
+  <p style="text-align:center; font-size: 2em; font-weight: bold" class="sansserif">Overview</p>
+  <div style="text-align:center; margin-bottom:1em;">
+    <img src="assets/figs/pipeline.png" width="75%">
+  </div>
+</div>
+
+
+
+<div class="content">
+  <p style="text-align:center; font-size: 1.8em; font-weight: bold" class="sansserif">Evaluations on CogVideoX</p>
+
+  <div class="row">
+    <!-- 第一组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A martial artist practicing slow and controlled Tai Chi movements.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/010/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/010/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/010/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/010/physhpo.mp4"></video>
+      </a>
+    </div>
+  
+    <!-- 第二组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A person opening a book and flipping through its pages in a library.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/011/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/011/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/011/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/011/physhpo.mp4"></video>
+      </a>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- 第一组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A runner sprinting through a forest trail during sunset.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/012/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/012/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/012/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/012/physhpo.mp4"></video>
+      </a>
+    </div>
+  
+    <!-- 第二组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A skateboarder performing a kickflip on a ramp in an urban skatepark.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/013/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/013/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/013/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/013/physhpo.mp4"></video>
+      </a>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- 第一组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A person swimming underwater in a clear blue pool.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/014/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/014/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/014/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/014/physhpo.mp4"></video>
+      </a>
+    </div>
+  
+    <!-- 第二组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A child flying a kite on a windy beach.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/015/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/015/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/015/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/015/physhpo.mp4"></video>
+      </a>
+    </div>
+  </div>
+  
+  <div class="row">
+    <!-- 第一组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">Honey diffusing into warm milk.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/000/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/000/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/000/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/000/physhpo.mp4"></video>
+      </a>
+    </div>
+  
+    <!-- 第二组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">An apple falls into a vat of red wine.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/001/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/001/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/001/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/001/physhpo.mp4"></video>
+      </a>
+    </div>
+  </div>
+  
+  <div class="row">
+    <!-- 第一组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">Peeler peels an apple.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/002/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/002/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/002/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/002/physhpo.mp4"></video>
+      </a>
+    </div>
+  
+    <!-- 第二组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">Yogurt merging with strawberry puree.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/003/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/003/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/003/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/003/physhpo.mp4"></video>
+      </a>
+    </div>
+  </div>
+  
+  <div class="row">
+    <!-- 第一组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A butter knife spreads a layer of butter over bread.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/004/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/004/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/004/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/004/physhpo.mp4"></video>
+      </a>
+    </div>
+  
+    <!-- 第二组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">Knife slices the tomato.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/005/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/005/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/005/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/005/physhpo.mp4"></video>
+      </a>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- 第一组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">An ice cream scooper cuts through creamy vanilla ice cream.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/006/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/006/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/006/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/006/physhpo.mp4"></video>
+      </a>
+    </div>
+  
+    <!-- 第二组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A delicate, fragile egg is hurled with significant force towards a rugged, solid rock surface, where it collides upon impact.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/013/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/013/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/013/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/013/physhpo.mp4"></video>
+      </a>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- 第一组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A bucket scoops up sea water at the beach.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/016/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/016/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/016/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/016/physhpo.mp4"></video>
+      </a>
+    </div>
+  
+    <!-- 第二组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A vibrant, elastic tennis ball is thrown forcefully towards the ground, capturing its dynamic interaction with the surface upon impact.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/009/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/009/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/009/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/009/physhpo.mp4"></video>
+      </a>
+    </div>
+  </div>
+
+
+  <div class="row">
+    <!-- 第一组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A collection of prisms is arranged in a pattern with sunlight shining through them.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/010/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/010/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/010/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/010/physhpo.mp4"></video>
+      </a>
+    </div>
+  
+    <!-- 第二组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A magnifying glass is gradually moving closer to a coin, revealing the intricate details and textures of the embossed design as it approaches.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/011/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/011/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/011/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/011/physhpo.mp4"></video>
+      </a>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- 第一组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A swimmer glides through the calm ocean waves.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/014/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/014/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/014/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/014/physhpo.mp4"></video>
+      </a>
+    </div>
+  
+    <!-- 第二组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">An airplane zooms through a patch of fluffy clouds.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/015/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/015/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/015/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/015/physhpo.mp4"></video>
+      </a>
+    </div>
+  </div>
+  
+  <div class="row">
+    <!-- 第一组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A vibrant, elastic beach ball is thrown forcefully towards the ground, capturing its dynamic interaction with the surface upon impact.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/007/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/007/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhyT2V</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/007/phyt2v.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/007/phyt2v.mp4"></video>
+      </a>
+    </div>
+  
+    <div class="column video-column">
+      <p class="model-name">+ Vanilla DPO</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/007/dpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/007/dpo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO (Ours)</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/007/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/007/physhpo.mp4"></video>
+      </a>
+    </div>
+  </div>
+  
+  <div class="row">
+    <!-- 第一组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A black pen is used to write on the smooth, white surface of a notebook, showcasing the interaction between the pen and the notebook surface.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/008/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/008/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhyT2V</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/008/phyt2v.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/008/phyt2v.mp4"></video>
+      </a>
+    </div>
+  
+    <div class="column video-column">
+      <p class="model-name">+ Vanilla DPO</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/008/dpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/008/dpo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO (Ours)</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/008/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/008/physhpo.mp4"></video>
+      </a>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- 第一组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A whisk mixes an egg in a bowl.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">CogVideoX</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/005/cogvideo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/005/cogvideo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhyT2V</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/005/phyt2v.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/005/phyt2v.mp4"></video>
+      </a>
+    </div>
+  
+    <div class="column video-column">
+      <p class="model-name">+ Vanilla DPO</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/005/dpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/005/dpo.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO (Ours)</p> <!-- 模型名称 -->
+      <a href="Demo_1_Video/005/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_1_Video/005/physhpo.mp4"></video>
+      </a>
+    </div>
+  </div>
+
+  <!-- <p class="serif"><b style="font-size: 1.3em;">&hellip;</b></p> -->
+
+</div>
+
+<div class="content">
+  <p style="text-align:center; font-size: 1.8em; font-weight: bold" class="sansserif">Evaluations on HunyuanVideo</p>
+
+  <div class="row">
+    <!-- 第一组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A bulldozer clears debris from a construction site, moving it into a dumpster.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">HunyuanVideo</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/000/hunyuan.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/000/hunyuan.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/000/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/000/physhpo.mp4"></video>
+      </a>
+    </div>
+  
+    <!-- 第二组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">Multiple candles of varying heights and widths are blown out simultaneously by a single breath, some flames extinguishing faster than others.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">HunyuanVideo</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/001/hunyuan.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/001/hunyuan.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/001/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/001/physhpo.mp4"></video>
+      </a>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- 第一组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">An apple submerging into a water.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">HunyuanVideo</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/002/hunyuan.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/002/hunyuan.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/002/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/002/physhpo.mp4"></video>
+      </a>
+    </div>
+  
+    <!-- 第二组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A volleyball is spiked, hitting the wooden floor of the court and producing a soundless bounce visible by its slight dip and subsequent rebound.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">HunyuanVideo</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/003/hunyuan.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/003/hunyuan.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/003/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/003/physhpo.mp4"></video>
+      </a>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- 第一组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A group of friends dancing energetically at a party.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">HunyuanVideo</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/004/hunyuan.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/004/hunyuan.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/004/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/004/physhpo.mp4"></video>
+      </a>
+    </div>
+  
+    <!-- 第二组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A person skiing down a snowy mountain slope with speed and control.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">HunyuanVideo</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/005/hunyuan.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/005/hunyuan.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/005/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/005/physhpo.mp4"></video>
+      </a>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- 第一组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A person gracefully ice skating on a frozen lake.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">HunyuanVideo</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/006/hunyuan.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/006/hunyuan.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/006/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/006/physhpo.mp4"></video>
+      </a>
+    </div>
+  
+    <!-- 第二组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A person doing push-ups in a gym with perfect form.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">HunyuanVideo</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/007/hunyuan.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/007/hunyuan.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/007/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/007/physhpo.mp4"></video>
+      </a>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- 第一组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A boxer throwing punches and dodging during a training session.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">HunyuanVideo</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/008/hunyuan.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/008/hunyuan.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/008/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/008/physhpo.mp4"></video>
+      </a>
+    </div>
+  
+    <!-- 第二组文字和视频 -->
+    <div class="column text-column">
+      <p class="text-prompt">A runner stretching their legs before starting a race.</p>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">HunyuanVideo</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/009/hunyuan.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/009/hunyuan.mp4"></video>
+      </a>
+    </div>
+    <div class="column video-column">
+      <p class="model-name">+ PhysHPO</p> <!-- 模型名称 -->
+      <a href="Demo_2_Video/009/physhpo.mp4" target="_blank">
+        <video autoplay="autoplay" controls="controls" loop="loop" muted="muted" src="Demo_2_Video/009/physhpo.mp4"></video>
+      </a>
+    </div>
+  </div>
+
+</div>
+
+
+<div class="content" id="bibtex">
+  <p style="text-align:left; font-size: 2em; font-weight: bold" class="serif">BibTeX</p>
+  <code>
+  @article{chen2025hierarchical,<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;title={Hierarchical Fine-grained Preference Optimization for Physically Plausible Video Generation},<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;author={Chen, Harold Haodong and Huang, Haojian and Chen, Qifeng and Yang, Harry and Lim, Ser-Nam},<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;journal={arXiv preprint arXiv:2508.xxxxx},<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;year={2025}<br>
+  }
+  </code>
+</div>
+
+<div class="content">
+  <p class="serif">
+    Project page template is borrowed from <a href="https://dreambooth.github.io/">DreamBooth</a>.
+  </p>
+</div>
+
+<style>
+  .gradient-text {
+      font-weight: bold;
+      background: linear-gradient(to right, purple, red, orange); /* 定义渐变色 */
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-family: "Times New Roman", Times, serif;
+  }
+</style>
+
+<style>
+  .gradient-black {
+      font-weight: bold;
+      background: linear-gradient(to right, black, black); /* 定义渐变色 */
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-family: "Times New Roman", Times, serif;
+  }
+</style>
+
+</body>
+
+<script>
+  var videos = document.getElementsByClassName("clickplay");
+  for (var i = 0; i < videos.length; i++) {
+    videos[i].addEventListener("click", function() {
+      this.play();
+    });
+    videos[i].addEventListener("ended", function() {
+      this.pause();
+      this.currentTime = 0;
+    });
+  }
+</script>
+
+</html>
